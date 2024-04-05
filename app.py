@@ -22,8 +22,9 @@ def profile():
 def create_post():
 	if request.method == 'POST':
 		post_title = request.form['title']
+		post_url = request.form['url']
 		post_content = request.form['content']
-		new_post = Post(title=post_title, content=post_content)
+		new_post = Post(title=post_title, content=post_content, url=post_url)
 		db.session.add(new_post)
 		db.session.commit()
 		return redirect(url_for('home'))
@@ -59,6 +60,7 @@ def show_edit_post_form(post_id):
 def edit_post(post_id):
     post = Post.query.get_or_404(post_id)
     post.title = request.form['title']
+    post.url = request.form['url']
     post.content = request.form['content']
     db.session.commit()
     return redirect(url_for('home'))
