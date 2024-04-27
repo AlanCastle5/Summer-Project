@@ -5,10 +5,12 @@ from flask import Flask, request, jsonify, redirect, render_template, request, r
 from flask_sqlalchemy import SQLAlchemy
 from authlib.integrations.flask_client import OAuth
 from db import Post, User, user_like_association, user_dislike_association
+import secrets
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-
+app.secret_key = secrets.token_urlsafe(16)
 """
 """
 
