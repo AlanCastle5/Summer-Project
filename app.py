@@ -8,6 +8,8 @@ from authlib.integrations.flask_client import OAuth
 from db import Post, User, user_like_association, user_dislike_association, Comment
 import secrets
 import os
+from sqlalchemy.orm.exc import NoResultFound
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
