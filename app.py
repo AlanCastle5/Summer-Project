@@ -34,10 +34,17 @@ oauth.register(
 
 @app.route('/')
 def home():
+    user_info = session.get("user")
+    if user_info:
+        user_id = user_info.get("sub")
+        username = user_info.get("nickname")
+    else:
+        user_id = 0
+        username = 'guest'
     db_session = Session()
     posts = db_session.query(Post).order_by(Post.date_posted.desc()).all()
     db_session.close()
-    return render_template('home.html', posts=posts)
+    return render_template('home.html', posts=posts, user_id=user_id, username=username)
 
 @app.route("/callback",methods=["GET","POST"])
 def callback():
