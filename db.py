@@ -26,6 +26,8 @@ class User(Base):
     likes = relationship('Post', secondary=user_like_association, back_populates='liked_by')
     dislikes = relationship('Post', secondary=user_dislike_association, back_populates='disliked_by')
     isAdmin = Column(Boolean, default=False)
+    comments = relationship('Comment', back_populates='user')
+
 
 class Post(Base):
     __tablename__ = 'post'
@@ -38,6 +40,18 @@ class Post(Base):
     dislikes = Column(Integer, default=0, nullable=False)
     liked_by = relationship('User', secondary=user_like_association, back_populates='likes')
     disliked_by = relationship('User', secondary=user_dislike_association, back_populates='dislikes')
+    comments = relationship('Comment', order_by='Comment.id', cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}')"
+    
+class Comment(Base):
+    __tablename__ = 'comment'
+    id = Column(Integer, primary_key=True)
+    content = Column(String(250), nullable=False)
+    date_posted = Column(DateTime, default=datetime.now)
+    user_id = Column(String, ForeignKey('user.id'))
+    post_id = Column(Integer, ForeignKey('post.id'))
+
+    user = relationship('User', back_populates='comments')
+    post = relationship('Post', back_populates='comments')
