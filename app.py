@@ -275,7 +275,6 @@ def has_liked(post_id, user_id):
     return result is not None
     
 
-
 def has_disliked(post_id, user_id):
     """ Checks if a user has already disliked a specific post """
     db_session = Session()
@@ -320,6 +319,19 @@ def show_post(post_id):
     db_session.close()
     return render_template('post.html', post=post, comments=comments)
 
+
+
+@app.route('/search')
+def search_results():
+    query = request.args.get('query')
+    if not query:
+        return redirect(url_for('home'))
+
+    db_session = Session()
+    # Using `ilike` for case-insensitive search; adjust the filtering logic as needed
+    results = db_session.query(Post).filter(Post.title.ilike(f'%{query}%')).all()
+    db_session.close()
+    return render_template('search_results.html', posts=results, query=query)
+
 if __name__ ==  '__main__':
 	app.run(debug=True)
-
