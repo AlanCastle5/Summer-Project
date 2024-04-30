@@ -108,12 +108,16 @@ def profile():
     user_info = session.get("user")
     if not user_info:
         return redirect(url_for('home'))
-
+    db_session = Session()
+    user = db_session.query(User).filter_by(id=user_info["sub"]).first()
+    if user:
+        updated_about_me = user.aboutMe  # Get the updated About Me
+    else:
+        return redirect(url_for('home'))  # Handle cases where user is not found
     user_id = user_info.get("sub")
     username = user_info.get("nickname")
     email = user_info.get("email")
-    aboutMe = user_info.get("aboutMe")
-    return render_template('profile.html', user_id=user_id, username=username, email=email, user_info=aboutMe)
+    return render_template('profile.html', user_id=user_id, username=username, email=email, aboutMe=updated_about_me)
 
 @app.route('/update_about_me', methods=['POST'])
 def update_about_me():

@@ -7,11 +7,17 @@
     <link rel="stylesheet" href="/path_to_your_stylesheet.css">
     <script>
         function toggleEdit() {
-            var aboutMeText = document.getElementById('aboutMeText');
-            var aboutMeEdit = document.getElementById('aboutMeEdit');
-            aboutMeText.style.display = 'none';
+        var aboutMeText = document.getElementById('aboutMeText');
+        var aboutMeEdit = document.getElementById('aboutMeEdit');
+        if (aboutMeEdit.style.display === 'none') {
             aboutMeEdit.style.display = 'block';
+            aboutMeText.style.display = 'none';
+        } else {
+            aboutMeEdit.style.display = 'none';
+            aboutMeText.style.display = 'block';
+            aboutMeText.textContent = document.querySelector('[name="about_me"]').value;  // Update the text display
         }
+    }
     </script>
     <style>
         body {
@@ -88,7 +94,6 @@
                 <textarea name="about_me" rows="4" cols="50">{{aboutMe}}</textarea>
                 <button type="submit">Update</button>
             </form>
-            <p>{{aboutMe}}</p>
             <h3>Contact Information</h3>
             <p>Email: {{email}}</p>
         </section>
