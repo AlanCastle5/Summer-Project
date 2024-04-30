@@ -1,7 +1,7 @@
 # db.py
 import requests
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, JSON, DateTime, Table, ForeignKey
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship, joinedload
 from datetime import datetime
 
 Base = declarative_base()
@@ -23,10 +23,10 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(String(120), primary_key=True)
     username = Column(String(80), nullable=False)
-    likes = relationship('Post', secondary=user_like_association, back_populates='liked_by')
-    dislikes = relationship('Post', secondary=user_dislike_association, back_populates='disliked_by')
+    likes = relationship('Post', secondary=user_like_association, back_populates='liked_by', lazy='joined')
+    dislikes = relationship('Post', secondary=user_dislike_association, back_populates='disliked_by', lazy='joined')
     isAdmin = Column(Boolean, default=False)
-    comments = relationship('Comment', back_populates='user')
+    comments = relationship('Comment', back_populates='user', lazy='joined')
 
 
 class Post(Base):
@@ -38,9 +38,9 @@ class Post(Base):
     date_posted = Column(DateTime, nullable=False, default=datetime.utcnow)
     likes = Column(Integer, default=0, nullable=False)
     dislikes = Column(Integer, default=0, nullable=False)
-    liked_by = relationship('User', secondary=user_like_association, back_populates='likes')
-    disliked_by = relationship('User', secondary=user_dislike_association, back_populates='dislikes')
-    comments = relationship('Comment', order_by='Comment.id', cascade="all, delete-orphan")
+    liked_by = relationship('User', secondary=user_like_association, back_populates='likes', lazy='joined')
+    disliked_by = relationship('User', secondary=user_dislike_association, back_populates='dislikes', lazy='joined')
+    comments = relationship('Comment', order_by='Comment.id', cascade="all, delete-orphan", lazy='joined')
 
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}')"
@@ -53,5 +53,5 @@ class Comment(Base):
     user_id = Column(String, ForeignKey('user.id'))
     post_id = Column(Integer, ForeignKey('post.id'))
 
-    user = relationship('User', back_populates='comments')
-    post = relationship('Post', back_populates='comments')
+    user = relationship('User', back_populates='comments', lazy='joined')
+    post = relationship('Post', back_populates='comments', lazy='joined')
