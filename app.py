@@ -156,26 +156,94 @@ def create_post():
         return redirect(url_for('home'))
     return render_template('create_post.html')
 
+# @app.route('/post/<int:post_id>/like', methods=['POST'])
+# def like_post(post_id):
+#     """ Route which disliked a specific post and returns user back to home """
+#     user_info = session.get("user")
+#     user_id = user_info.get("sub") if user_info else None
+
+#     if user_id and not (has_liked(post_id, user_id) or has_disliked(post_id, user_id)):
+#         save_like(post_id, user_id)
+
+#     return redirect(url_for('home'))
+
+# @app.route('/post/<int:post_id>/dislike', methods=['POST'])
+# def dislike_post(post_id):
+#     """ Route which disliked a specific post and returns user back to home """
+#     user_info = session.get("user")
+#     user_id = user_info.get("sub") if user_info else None
+
+#     if user_id and not (has_disliked(post_id, user_id) or has_liked(post_id, user_id)):
+#         save_dislike(post_id, user_id)
+
+#     return redirect(url_for('home'))
+
 @app.route('/post/<int:post_id>/like', methods=['POST'])
 def like_post(post_id):
-    """ Route which disliked a specific post and returns user back to home """
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     user_info = session.get("user")
-    user_id = user_info.get("sub") if user_info else None
+    user_id = user_info.get("sub")
+    db_session = Session()
 
-    if user_id and not (has_liked(post_id, user_id) or has_disliked(post_id, user_id)):
-        save_like(post_id, user_id)
+    post = db_session.query(Post).get(post_id)
+    if not post:
+        db_session.close()
+        return "Post not found", 404
 
+    # Check if the user has already liked the post
+    if has_liked(post_id, user_id):
+        # User unlikes the post
+        remove_like(post_id, user_id)
+        post.likes -= 1
+    elif has_disliked(post_id, user_id):
+        # Switch from dislike to like
+        remove_dislike(post_id, user_id)
+        post.dislikes -= 1
+        add_like(post_id, user_id)
+        post.likes += 1
+    else:
+        # User likes the post for the first time
+        add_like(post_id, user_id)
+        post.likes += 1
+
+    db_session.commit()
+    db_session.close()
     return redirect(url_for('home'))
 
 @app.route('/post/<int:post_id>/dislike', methods=['POST'])
 def dislike_post(post_id):
-    """ Route which disliked a specific post and returns user back to home """
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     user_info = session.get("user")
-    user_id = user_info.get("sub") if user_info else None
+    user_id = user_info.get("sub")
+    db_session = Session()
 
-    if user_id and not (has_disliked(post_id, user_id) or has_liked(post_id, user_id)):
-        save_dislike(post_id, user_id)
+    post = db_session.query(Post).get(post_id)
+    if not post:
+        db_session.close()
+        return "Post not found", 404
 
+    # Check if the user has already disliked the post
+    if has_disliked(post_id, user_id):
+        # User undislikes the post
+        remove_dislike(post_id, user_id)
+        post.dislikes -= 1
+    elif has_liked(post_id, user_id):
+        # Switch from like to dislike
+        remove_like(post_id, user_id)
+        post.likes -= 1
+        add_dislike(post_id, user_id)
+        post.dislikes += 1
+    else:
+        # User dislikes the post for the first time
+        add_dislike(post_id, user_id)
+        post.dislikes += 1
+
+    db_session.commit()
+    db_session.close()
     return redirect(url_for('home'))
 
 @app.route('/post/<int:post_id>/delete', methods=['POST'])
@@ -264,33 +332,84 @@ def save_dislike(post_id, user_id):
 
     db_session.close()
 
+# def has_liked(post_id, user_id):
+#     """ Checks if a user has already liked a specific post """
+#     db_session = Session()
+#     like_association = user_like_association.alias()
+
+#     result = db_session.query(like_association.c.post_id)\
+#         .filter(like_association.c.user_id == user_id,
+#                     like_association.c.post_id == post_id)\
+#         .first()
+
+#     db_session.close()
+#     return result is not None
+    
+
+
+# def has_disliked(post_id, user_id):
+#     """ Checks if a user has already disliked a specific post """
+#     db_session = Session()
+    
+#     dislike_association = user_dislike_association.alias()
+
+#     result = db_session.query(dislike_association.c.post_id)\
+#             .filter(dislike_association.c.user_id == user_id,
+#                     dislike_association.c.post_id == post_id)\
+#             .first()
+    
+#     db_session.close()
+#     return result is not None
+
 def has_liked(post_id, user_id):
-    """ Checks if a user has already liked a specific post """
     db_session = Session()
-    like_association = user_like_association.alias()
-
-    result = db_session.query(like_association.c.post_id)\
-        .filter(like_association.c.user_id == user_id,
-                    like_association.c.post_id == post_id)\
+    result = db_session.query(user_like_association)\
+        .filter(user_like_association.c.user_id == user_id,
+                user_like_association.c.post_id == post_id)\
         .first()
-
     db_session.close()
     return result is not None
     
 
 def has_disliked(post_id, user_id):
-    """ Checks if a user has already disliked a specific post """
     db_session = Session()
-    
-    dislike_association = user_dislike_association.alias()
-
-    result = db_session.query(dislike_association.c.post_id)\
-            .filter(dislike_association.c.user_id == user_id,
-                    dislike_association.c.post_id == post_id)\
-            .first()
-    
+    result = db_session.query(user_dislike_association)\
+        .filter(user_dislike_association.c.user_id == user_id,
+                user_dislike_association.c.post_id == post_id)\
+        .first()
     db_session.close()
     return result is not None
+
+def add_like(post_id, user_id):
+    db_session = Session()
+    like_association = user_like_association.insert().values(user_id=user_id, post_id=post_id)
+    db_session.execute(like_association)
+    db_session.commit()
+    db_session.close()
+
+def remove_like(post_id, user_id):
+    db_session = Session()
+    db_session.execute(user_like_association.delete().where(
+        user_like_association.c.user_id == user_id,
+        user_like_association.c.post_id == post_id))
+    db_session.commit()
+    db_session.close()
+
+def add_dislike(post_id, user_id):
+    db_session = Session()
+    dislike_association = user_dislike_association.insert().values(user_id=user_id, post_id=post_id)
+    db_session.execute(dislike_association)
+    db_session.commit()
+    db_session.close()
+
+def remove_dislike(post_id, user_id):
+    db_session = Session()
+    db_session.execute(user_dislike_association.delete().where(
+        user_dislike_association.c.user_id == user_id,
+        user_dislike_association.c.post_id == post_id))
+    db_session.commit()
+    db_session.close()
+
 
 @app.route('/post/<int:post_id>/comment', methods=['POST'])
 def post_comment(post_id):
