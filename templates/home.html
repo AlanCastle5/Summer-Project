@@ -84,6 +84,15 @@
             height: 24px;
             cursor: pointer;
         }
+        .comments {
+            margin-top: 20px;
+        }
+        .comment {
+            margin-top: 10px;
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
         footer {
             text-align: center;
             padding: 20px 0;
@@ -144,6 +153,24 @@
                             <img src="{{ url_for('static', filename='icons/delete_icon.png') }}" alt="Delete">
                         </button>
                     </form>
+                </div>
+                <!-- Comments -->
+                <div class="comments">
+                    <h4>Comments:</h4>
+                    {% for comment in post.comments %}
+                    <div class="comment">
+                        <p>{{ comment.content }}</p>
+                        <small>by {{ comment.user.username }} on {{ comment.date_posted.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                    {% endfor %}
+                    {% if 'user' in session %}
+                    <form action="{{ url_for('post_comment', post_id=post.id) }}" method="POST">
+                        <textarea name="comment" rows="2" required></textarea>
+                        <button type="submit">Add Comment</button>
+                    </form>
+                    {% else %}
+                    <p><a href="{{ url_for('login') }}">Log in</a> to add a comment.</p>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

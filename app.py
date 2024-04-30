@@ -4,7 +4,7 @@ from urllib.parse import quote_plus, urlencode
 from flask import Flask, request, jsonify, redirect, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from authlib.integrations.flask_client import OAuth
-from db import Post, User, user_like_association, user_dislike_association
+from db import Post, User, user_like_association, user_dislike_association, Comment
 import secrets
 import os
 
@@ -35,7 +35,7 @@ oauth.register(
 @app.route('/')
 def home():
     db_session = Session()
-    posts = db_session.query(Post).order_by(Post.date_posted.desc()).all()
+    posts = db_session.query(Post).outerjoin(Comment).order_by(Post.date_posted.desc()).all()
     db_session.close()
     return render_template('home.html', posts=posts)
 
@@ -244,6 +244,29 @@ def has_disliked(post_id, user_id):
     
     db_session.close()
     return result is not None
+
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+def post_comment(post_id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    db_session = Session()
+    post = db_session.query(Post).get_or_404(post_id)
+    comment_content = request.form['comment']
+    user_id = session['user']['sub']
+    comment = Comment(content=comment_content, user_id=user_id, post_id=post_id)
+    db_session.add(comment)
+    db_session.commit()
+    db_session.close()
+    return redirect(url_for('home'))
+
+@app.route('/post/<int:post_id>')
+def show_post(post_id):
+    db_session = Session()
+    post = db_session.query(Post).get_or_404(post_id)
+    comments = db_session.query(Comment).filter_by(post_id=post_id).all()
+    db_session.close()
+    return render_template('post.html', post=post, comments=comments)
 
 if __name__ ==  '__main__':
 	app.run(debug=True)
