@@ -109,8 +109,29 @@ def profile():
 
     user_id = user_info.get("sub")
     username = user_info.get("nickname")
+    email = user_info.get("email")
+    aboutMe = user_info.get("aboutMe")
+    return render_template('profile.html', user_id=user_id, username=username, email=email, user_info=aboutMe)
 
-    return render_template('profile.html', user_id=user_id, username=username)
+@app.route('/update_about_me', methods=['POST'])
+def update_about_me():
+    user_info = session.get("user")
+    if not user_info:
+        return redirect(url_for('login'))
+    
+    user_id = user_info.get("sub")
+    about_me = request.form['about_me']
+
+    db_session = Session()
+    user = db_session.query(User).filter_by(id=user_id).first()
+    if user:
+        user.aboutMe = about_me
+        db_session.commit()
+    db_session.close()
+    
+    return redirect(url_for('profile'))
+
+
 
 @app.route('/create_post', methods=['POST', 'GET'])
 def create_post():

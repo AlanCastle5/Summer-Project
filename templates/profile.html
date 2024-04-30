@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <link rel="stylesheet" href="/path_to_your_stylesheet.css">
+    <script>
+        function toggleEdit() {
+            var aboutMeText = document.getElementById('aboutMeText');
+            var aboutMeEdit = document.getElementById('aboutMeEdit');
+            aboutMeText.style.display = 'none';
+            aboutMeEdit.style.display = 'block';
+        }
+    </script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -72,11 +81,16 @@
     </header>
     <main>
         <section>
-            <h1>Hello Guest</h1>
-            <h2>About Me</h2>
-            <p>Please Sign in to continue</p>
+            <h1>Hello, {{username}}</h1>
+            <h3>About Me</h3>
+            <p id="aboutMeText">{{aboutMe}} <button onclick="toggleEdit()">Edit</button></p>
+            <form id="aboutMeEdit" action="{{ url_for('update_about_me') }}" method="POST" style="display:none;">
+                <textarea name="about_me" rows="4" cols="50">{{aboutMe}}</textarea>
+                <button type="submit">Update</button>
+            </form>
+            <p>{{aboutMe}}</p>
             <h3>Contact Information</h3>
-            <p>Email: user@Guest.com</p>
+            <p>Email: {{email}}</p>
         </section>
     </main>
     <footer>
