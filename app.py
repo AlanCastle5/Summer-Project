@@ -179,7 +179,7 @@ def edit_post(post_id):
 def save_like(post_id, user_id):
     """ Saves a like and reflects database changes when a user likes a post """
     db_session = Session()
-    existing_like = has_liked(news_id, user_id)
+    existing_like = has_liked(post_id, user_id)
 
     if not existing_like:
         like_association = user_like_association.insert().values(
