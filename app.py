@@ -7,6 +7,8 @@ from authlib.integrations.flask_client import OAuth
 from db import Post, User, user_like_association, user_dislike_association, Comment
 import secrets
 import os
+from sqlalchemy.orm.exc import NoResultFound
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -256,7 +258,12 @@ def post_comment(post_id):
         return redirect(url_for('login'))
     
     db_session = Session()
-    post = db_session.query(Post).get_or_404(post_id)
+    db_session = Session()
+    try:
+        post = db_session.query(Post).filter(Post.id == post_id).one()
+    except NoResultFound:
+        # Here we manually handle the case where no result is found, equivalent to get_or_404
+        return "Post not found", 404  # You can customize the response as needed
     comment_content = request.form['comment']
     user_id = session['user']['sub']
     comment = Comment(content=comment_content, user_id=user_id, post_id=post_id)
