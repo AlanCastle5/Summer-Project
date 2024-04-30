@@ -121,9 +121,8 @@ def like_post(post_id):
 
     if user_id and not (has_liked(post_id, user_id) or has_disliked(post_id, user_id)):
         save_like(post_id, user_id)
-        return redirect(url_for('home'))
 
-    return jsonify({'success': False, 'message': 'Already liked or user not authenticated'})
+    return redirect(url_for('home'))
 
 @app.route('/post/<int:post_id>/dislike', methods=['POST'])
 def dislike_post(post_id):
@@ -133,9 +132,8 @@ def dislike_post(post_id):
 
     if user_id and not (has_disliked(post_id, user_id) or has_liked(post_id, user_id)):
         save_dislike(post_id, user_id)
-        return redirect(url_for('home'))
 
-    return jsonify({'success': False, 'message': 'Already disliked or user not authenticated'})
+    return redirect(url_for('home'))
 
 @app.route('/post/<int:post_id>/delete', methods=['POST'])
 def delete_post(post_id):
