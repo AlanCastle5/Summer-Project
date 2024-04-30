@@ -98,11 +98,15 @@
         <h1>Tech Blog!</h1>
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="profile">Profile</a></li>
-                <li><a href="create_post">Create Post</a></li>
-                <li><a href="login">Login</a></li>
-                <li><a href="register">Regiser</a></li>
+                {% if not session.get('user') %}
+                    <li><a href="/">Home</a></li>
+                    <li><a href="login">Login</a></li>
+                    <li><a href="register">Register</a></li>
+                {% else %}
+                    <li><a href="profile">Profile</a></li>
+                    <li><a href="create_post">Create Post</a></li>
+                    <li><a href="logout">Logout</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
