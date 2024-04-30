@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from urllib.parse import quote_plus, urlencode
-from flask import Flask, request, jsonify, redirect, render_template, request, redirect, url_for, session
+from flask import Flask, request, jsonify, redirect, render_template, request, redirect, url_for, session, abort
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm.exc import NoResultFound
 from authlib.integrations.flask_client import OAuth
 from db import Post, User, user_like_association, user_dislike_association, Comment
 import secrets
@@ -18,7 +19,7 @@ Base = declarative_base()
 engine = create_engine('sqlite:///site.db')
 Session = sessionmaker(bind=engine)
 
-db = SQLAlchemy(app)
+db = SQLAlchemy(app)    
 
 Base.metadata.create_all(engine, checkfirst=True)
 
@@ -31,6 +32,11 @@ oauth.register(
         client_kwargs={"scope": "openid profile email",},
         server_metadata_url="https://dev-fkmst0p3l8ckzcn1.us.auth0.com/.well-known/openid-configuration"
 )
+
+def is_admin(user_id, db_session):
+    """ Checks if a user is an admin """
+    user = db_session.query(User).get(user_id)
+    return user and user.isAdmin
 
 @app.route('/')
 def home():
@@ -166,14 +172,21 @@ def delete_post(post_id):
 @app.route('/post/<int:post_id>/edit', methods=['GET'])
 def show_edit_post_form(post_id):
     db_session = Session()
-    post = db_session.query(Post).get_or_404(post_id)
+    try:
+        post = db_session.query(Post).filter(Post.id == post_id).one()
+    except NoResultFound:
+        # Here we manually handle the case where no result is found, equivalent to get_or_404
+        return "Post not found", 404  # You can customize the response as needed
     db_session.close()
     return render_template('edit_post.html', post=post)
 
 @app.route('/post/<int:post_id>/edit', methods=['POST'])
 def edit_post(post_id):
     db_session = Session()
-    post = db_session.query(Post).get_or_404(post_id)
+    post = db_session.query(Post).filter(Post.id == post_id).first()  # Using first() instead of get()
+    if not post:
+        db_session.close()
+        abort(404)  # Manually aborting with a 404 if the post is not found
     post.title = request.form['title']
     post.url = request.form['url']
     post.content = request.form['content']
@@ -256,7 +269,11 @@ def post_comment(post_id):
         return redirect(url_for('login'))
     
     db_session = Session()
-    post = db_session.query(Post).get_or_404(post_id)
+    try:
+        post = db_session.query(Post).filter(Post.id == post_id).one()
+    except NoResultFound:
+        # Here we manually handle the case where no result is found, equivalent to get_or_404
+        return "Post not found", 404  # You can customize the response as needed
     comment_content = request.form['comment']
     user_id = session['user']['sub']
     comment = Comment(content=comment_content, user_id=user_id, post_id=post_id)
@@ -268,7 +285,10 @@ def post_comment(post_id):
 @app.route('/post/<int:post_id>')
 def show_post(post_id):
     db_session = Session()
-    post = db_session.query(Post).get_or_404(post_id)
+    post = db_session.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        db_session.close()
+        abort(404)  # Manually aborting with a 404 if the post is not found
     comments = db_session.query(Comment).filter_by(post_id=post_id).all()
     db_session.close()
     return render_template('post.html', post=post, comments=comments)
