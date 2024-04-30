@@ -58,7 +58,7 @@ def callback():
     user = db_session.query(User).filter_by(id=userinfo["sub"]).first()
     if user is None:
         username = userinfo["nickname"] if "nickname" in userinfo else "Unknown"
-        user = User(id=userinfo["sub"], username=username)
+        user = User(id=userinfo["sub"], username=username, aboutMe='About Me', email='Enter email here')
         db_session.add(user)
         db_session.commit()
 

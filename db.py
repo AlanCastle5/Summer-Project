@@ -23,6 +23,8 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(String(120), primary_key=True)
     username = Column(String(80), nullable=False)
+    email = Column(String(60), nullable=True)
+    aboutMe = Column(String(250), nullable=True)
     likes = relationship('Post', secondary=user_like_association, back_populates='liked_by', lazy='joined')
     dislikes = relationship('Post', secondary=user_dislike_association, back_populates='disliked_by', lazy='joined')
     isAdmin = Column(Boolean, default=False)
