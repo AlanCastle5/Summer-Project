@@ -99,7 +99,7 @@ def logout():
         "https://dev-fkmst0p3l8ckzcn1.us.auth0.com/v2/logout?" + urlencode(
             {
                 "returnTo": url_for("home", _external=True),
-                "client_id": kMehFewqaxeoWnmDEjdQRLQlQzpzzkCe,
+                "client_id": 'kMehFewqaxeoWnmDEjdQRLQlQzpzzkCe',
             },
             quote_via=quote_plus,
         )
