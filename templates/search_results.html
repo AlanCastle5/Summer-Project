@@ -77,9 +77,15 @@
         <h1>Search Results for "{{ query }}"</h1>
         <nav>
             <ul>
+                {% if not session.get('user') %}
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+                {% else %}
                 <li><a href="{{ url_for('home') }}">Home</a></li>
                 <li><a href="{{ url_for('profile') }}">Profile</a></li>
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% endif %}
             </ul>
         </nav>
         <form action="{{ url_for('search_results') }}" method="GET">
